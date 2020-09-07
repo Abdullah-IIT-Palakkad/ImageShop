@@ -1,98 +1,68 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 #include "image.h"
 // MACROS
 #define MAX_LINE_SIZE 70
 
-// STRUCTS
-
-// FUNCTION DECLARATIONS
-void print_err(char *err_msg);
-void printMatrix(matrix* A);
-
-// MATRIX
-
-// IMAGE
-
-
 int main(int argc, char *argv[]){
     
-    char *filename;
-    int iheight, iwidth, imaxval;
+    char *in, *out, *T1, *T2;
 
     /*  arg parser
-        format : executable filename Transform1 Transform2
+        format : ./ImageShop inputfilepath outputfilepath T1:(int)0/1 T2:(int)0/1
     */
-    if (argc == 2)
-    {
-        filename = argv[1];
-    } else if (argc > 2)
-    {
-        print_err("Too many arguments passed");
-    } else
-    {
-        filename = "img.ppm";
+    if(argc != 5){
+        printf("ERROR: main: Incorrect number(%d) of arguments passed, expected 4\n", argc);
+        exit(1);
+    }
+    in = argv[1];
+    out = argv[2];
+    T1 = argv[3];
+    T2 = argv[4];
+    // Input file
+    FILE* iptr = fopen(in,"r");
+    if(iptr == NULL){
+        perror("ERROR: main");
+        exit(1);
+    }
+    // output file
+    FILE* optr = fopen(out,"w");
+    if(optr == NULL){
+        perror("ERROR: main:");
+        exit(1);
     }
 
-
-    FILE* fptr = fopen(filename,"r");
-    if(fptr == NULL)
-    {
-        print_err("Invalid input file path");
-    }
-
-    FILE* optr = fopen("output.ppm","w");
-    if(fptr == NULL)
-    {
-        print_err("Invalid output file path");
-    }
-    
     char istream[MAX_LINE_SIZE];
-    fscanf(fptr, "%s", istream);
+    int iheight, iwidth, imaxval;
+    fscanf(iptr, "%s", istream);
     if(istream[0] != 'P' || istream[1] != '3'){
-        print_err("Invalid file format");
+        printf("ERROR: main: Invalid file format");
+        exit(1);
     }
-    fscanf(fptr, "%d %d", &iwidth, &iheight);
-    fscanf(fptr, "%d", &imaxval);
-    
+    // removing comments
+    char c = getc(iptr);
+    while (c == '#') {
+    while (getc(iptr) != '\n') ;
+         c = getc(iptr);
+    }
+    ungetc(c, iptr);
+
+    fscanf(iptr, "%d %d", &iwidth, &iheight);
+    fscanf(iptr, "%d", &imaxval);
+
+    // Image read
     image* img = initIMAGE(istream, iheight, iwidth, imaxval);
-    loadIMAGE(img, fptr);
-    img = Transform2(img);
-    img = Transform1(img);
+    loadIMAGE(img, iptr);
+    
+    // Transformations
+    if(T1[0] == '1')
+        img = Transform1(img);
+    if (T2[0] == '1')
+        img = Transform2(img);
+
+    // Image write
     unloadIMAGE(img, optr);
+    
     return 0;
 }
-
-// FUNCTION DEFINITIONS
-void print_err(char *err_msg)
-{
-    printf("ERROR: %s\n", err_msg);
-    exit(1);
-}
-
-
-// MATRIX
-
-
-// IMAGE
-
-
-void printMatrix(matrix* A){
-    for(int i = 0; i < A->r; i++){
-        for(int j = 0; j < A->c; j++){
-            printf("%d ", A->data[i][j]);
-        }
-        printf("\n");
-    }
-}
-
-
-
-/*
-    for(int i = 0; i < iheight; i++){
-        for(int j = 0; j < iwidth; j++){
-            printf("(%f, %f, %f) ", img->color[0]->data[i][j], img->color[1]->data[i][j], img->color[2]->data[i][j]);
-        }
-        printf("\n");
-    }
-    */

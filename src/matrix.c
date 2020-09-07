@@ -1,6 +1,6 @@
 #include "matrix.h"
 
-void allocMATRIX(matrix* m, int rows, int cols){
+void allocMATRIX(matrix m, int rows, int cols){
     m->r = rows;
     m->c = cols;
 
@@ -10,8 +10,8 @@ void allocMATRIX(matrix* m, int rows, int cols){
     }
 }
 
-matrix* initMATRIX(int rows, int cols){
-    matrix* NewMatrix = (matrix* ) malloc( sizeof(matrix) );
+matrix initMATRIX(int rows, int cols){
+    matrix NewMatrix = (matrix ) malloc( sizeof(matrix_t) );
     allocMATRIX(NewMatrix, rows, cols);
 
     for(int i = 0; i < rows; i++){
@@ -23,7 +23,7 @@ matrix* initMATRIX(int rows, int cols){
     return NewMatrix;
 }
 
-void loadMATRIX(matrix* m, int *entries){
+void loadMATRIX(matrix m, int *entries){
     int idx = 0;
     for(int i = 0; i < m->r; i++){
         for(int j = 0; j < m->c; j++){
@@ -33,8 +33,8 @@ void loadMATRIX(matrix* m, int *entries){
     }
 }
 
-matrix* loadWindow(matrix* m, int startX, int startY, int size){
-    matrix* temp = initMATRIX(size, size);
+matrix loadWindow(matrix m, int startX, int startY, int size){
+    matrix temp = initMATRIX(size, size);
     for(int i = 0; i < size; i++){
         for(int j = 0; j < size; j++){
             temp->data[i][j] = m->data[startX+i-1][startY+j-1];
@@ -43,7 +43,7 @@ matrix* loadWindow(matrix* m, int startX, int startY, int size){
     return temp;
 }
 
-int multiply(matrix* P, matrix* A, matrix* B){
+int multiply(matrix P, matrix A, matrix B){
     // dim check
     if(A->c != B->r){
         return 1;
@@ -61,7 +61,7 @@ int multiply(matrix* P, matrix* A, matrix* B){
     return 0;
 }
 
-int dot(matrix* P, matrix* A, matrix* B){
+int dot(matrix P, matrix A, matrix B){
     if(A->r != B->r || A->c != B->c ){
         return 1;
     }
@@ -74,7 +74,7 @@ int dot(matrix* P, matrix* A, matrix* B){
     return 0;
 }
 
-int elementSum(matrix* P, float normalizing_factor){
+int elementSum(matrix P, float normalizing_factor){
     int res = 0;
     for(int i = 0; i < P->r; i++){
         for(int j = 0; j < P->c; j++){

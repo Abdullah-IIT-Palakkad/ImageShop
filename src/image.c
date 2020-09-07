@@ -3,7 +3,7 @@
 image* initIMAGE(char *imgformat, int rows, int cols, int maxval)
 {
     image* NewImage = (image *) malloc( sizeof(image) );
-    NewImage->color = (matrix **) malloc( 3 * sizeof(matrix *) );
+    NewImage->color = (matrix *) malloc( 3 * sizeof(matrix) );
     NewImage->format = (char *) malloc(2 * sizeof(char) );
     NewImage->rows = rows;
     NewImage->cols = cols;
@@ -43,14 +43,14 @@ void unloadIMAGE(image* img, FILE* fptr){
 image* Transform1(image* img){
     image* temp = initIMAGE(img->format, img->rows, img->cols, img->maxval);
 
-    matrix* kernel = initMATRIX(3,3);
+    matrix kernel = initMATRIX(3,3);
     int edge[] = {-1,-1,-1,-1,8,-1,-1,-1,-1};
     loadMATRIX(kernel, edge);
     for(int comp = 0; comp < 3; comp++){
         for(int i = 1; i < img->rows-1; i++){
             for(int j = 1; j < img->cols-1; j++){
-                matrix* window = loadWindow(img->color[comp], i, j, kernel->r);
-                matrix* P = (matrix* ) malloc( sizeof(matrix) );
+                matrix window = loadWindow(img->color[comp], i, j, kernel->r);
+                matrix P = (matrix ) malloc( sizeof(matrix_t) );
                 int ret_val = multiply(P, kernel, window);
                 // int ret_val = dot(P, kernel, window);
                 if(ret_val != 0){
@@ -62,6 +62,7 @@ image* Transform1(image* img){
             }
         }
     }
+    printf("T1 complete\n");
     return temp;
 }
 
@@ -70,15 +71,15 @@ image* Transform2(image* img){
     int new_cols = (img->rows%2 == 0) ? img->rows+1 : img->rows;
     image* temp = initIMAGE(img->format, new_rows, new_cols, img->maxval);
 
-    matrix* affine = initMATRIX(2,2);
+    matrix affine = initMATRIX(2,2);
     int edge[] = {0,-1,1,0};
     loadMATRIX(affine, edge);
     for(int i = 0; i < img->rows; i++){
         for(int j = 0; j < img->cols; j++){
-            matrix* pos_vector = initMATRIX(2, 1);
+            matrix pos_vector = initMATRIX(2, 1);
             int pos[] = {i - img->rows/2, j - img->cols/2};
             loadMATRIX(pos_vector, pos);
-            matrix* P = (matrix* ) malloc( sizeof(matrix) );
+            matrix P = (matrix ) malloc( sizeof(matrix_t) );
             int ret_val = multiply(P, affine, pos_vector);
             // int ret_val = dot(P, kernel, window);
             if(ret_val != 0){
@@ -97,5 +98,6 @@ image* Transform2(image* img){
             temp->color[2]->data[new_i][new_j] = curr_b;
         }
     }
+    printf("T2 complete\n");
     return temp;
 }
